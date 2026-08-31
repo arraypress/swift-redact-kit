@@ -1,0 +1,24 @@
+{
+  "originHash" : "edb6869376a550a4fefb16e6bed517b0cf1060a0b074c112840951e4a95e1598",
+  "pins" : [
+    {
+      "identity" : "swift-credit-card-validator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/arraypress/swift-credit-card-validator.git",
+      "state" : {
+        "revision" : "5fb71eafd4a29ef6e277b254efc9c11f4be574da",
+        "version" : "1.0.1"
+      }
+    },
+    {
+      "identity" : "swift-secret-scanner",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/arraypress/swift-secret-scanner.git",
+      "state" : {
+        "revision" : "66c91cfbbc344a3b556f04b2dc0f8d04cc19f512",
+        "version" : "0.1.1"
+      }
+    }
+  ],
+  "version" : 3
+}
