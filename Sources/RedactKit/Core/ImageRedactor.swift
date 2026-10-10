@@ -51,29 +51,11 @@ public enum ImageRedactor {
     ) throws -> RedactionOutcome {
         let (image, sourceProperties) = try ImageIO.loadUpright(url)
 
-        // OCR the upright pixels; boxes come back in the same space they
-        // will be painted in.
-        var boxes: [CGRect] = []
-        var findings: [TextFinding] = []
-        let request = VNRecognizeTextRequest()
-        request.recognitionLevel = .accurate
-        request.usesLanguageCorrection = false
-        try VNImageRequestHandler(cgImage: image, options: [:]).perform([request])
-        for observation in request.results ?? [] {
-            guard let candidate = observation.topCandidates(1).first else { continue }
-            let found = try PatternRules.findings(
-                in: candidate.string, types: options.types,
-                customPatterns: options.customPatterns)
-            guard !found.isEmpty else { continue }
-            findings.append(contentsOf: found)
-            let box = observation.boundingBox
-            boxes.append(CGRect(
-                x: box.origin.x * CGFloat(image.width),
-                y: box.origin.y * CGFloat(image.height),
-                width: box.width * CGFloat(image.width),
-                height: box.height * CGFloat(image.height)
-            ).insetBy(dx: -options.padding, dy: -options.padding))
-        }
+        // Read and look at the upright pixels; boxes come back in the same
+        // space they will be painted in.
+        let scan = try VisualScan.scan(image, types: options.types, customPatterns: options.customPatterns,
+                                       padding: options.padding)
+        let findings = scan.findings, boxes = scan.boxes
 
         let grouped = RedactionOutcome.grouped(findings)
         let stripped = ImageIO.sensitiveMetadata(in: sourceProperties)
@@ -96,6 +78,14 @@ public enum ImageRedactor {
         let painted = try Painter.paint(boxes, over: image)
         try ImageIO.write(painted, to: output,
                           keepDates: options.keepDates, from: sourceProperties)
+        // Checked, not assumed: re-read the copy and refuse one that still
+        // says where, with what or when it was taken.
+        let left = ImageIO.sensitiveMetadata(in: ImageIO.properties(of: output))
+            .filter { !(options.keepDates && $0 == "capture date") }
+        guard left.isEmpty else {
+            try? FileManager.default.removeItem(at: output)
+            throw RedactError.unverified("\(output.lastPathComponent) still carried \(left.joined(separator: ", "))")
+        }
         return RedactionOutcome(input: url.path, output: output.path,
                                 status: .redacted, findings: grouped, detail: detail)
     }

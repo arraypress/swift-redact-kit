@@ -56,6 +56,13 @@ public enum ImageIO {
         return found
     }
 
+    /// The properties a written file carries, read back from disk.
+    static func properties(of url: URL) -> [String: Any] {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [String: Any] else { return [:] }
+        return properties
+    }
+
     /// The source's capture date, when it has one.
     static func captureDate(in properties: [String: Any]) -> String? {
         let exif = properties[kCGImagePropertyExifDictionary as String] as? [String: Any]

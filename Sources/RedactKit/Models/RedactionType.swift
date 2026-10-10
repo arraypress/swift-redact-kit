@@ -30,6 +30,11 @@ public enum RedactionType: String, CaseIterable, Codable, Sendable {
     case secret
     /// A caller-supplied pattern.
     case custom
+    /// A barcode or QR code in an image or on a page. Found by Vision, not
+    /// by reading text, and never reported by its payload — a boarding
+    /// pass's code IS the passenger's name and booking. The idea is
+    /// PrivacyCam's.
+    case barcode
 
     /// The replacement written into redacted text: `[REDACTED-CARD]`.
     public var replacement: String { "[REDACTED-\(rawValue.uppercased())]" }
@@ -37,5 +42,8 @@ public enum RedactionType: String, CaseIterable, Codable, Sendable {
     /// The default set: everything except `phone`, which cries wolf on
     /// invoice numbers and IDs, and `custom`, which needs a pattern.
     public static let defaults: Set<RedactionType> =
-        [.card, .mrz, .iban, .email, .ssn, .secret]
+        [.card, .mrz, .iban, .email, .ssn, .secret, .barcode]
+
+    /// Whether finding this kind means reading text.
+    public var isTextual: Bool { self != .barcode }
 }

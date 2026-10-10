@@ -17,12 +17,16 @@ public enum RedactError: Error, CustomStringConvertible, Sendable {
     case unwritable(String)
     /// The caller asked for something that cannot be done.
     case usage(String)
+    /// The copy was written but failed its own check — something that
+    /// should have gone was still in it — so it was deleted.
+    case unverified(String)
 
     public var description: String {
         switch self {
         case .unreadable(let detail): return "could not read: \(detail)"
         case .unwritable(let detail): return "could not write: \(detail)"
         case .usage(let detail): return detail
+        case .unverified(let detail): return "the redacted copy failed its check and was deleted: \(detail)"
         }
     }
 }
